@@ -1,12 +1,13 @@
 {
   "name": "delete-comments",
-  "displayName": "delete-comments",
-  "description": "delete all comments from the active file.",
-  "version": "0.0.1",
+  "displayName": "Delete Comments",
+  "description": "Remove all comments from the active file while preserving string literals.",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.110.0"
   },
   "categories": [
+    "Formatters",
     "Other"
   ],
   "activationEvents": [],
@@ -14,8 +15,17 @@
   "contributes": {
     "commands": [
       {
-        "command": "delete-comments.helloWorld",
-        "title": "Hello World"
+        "command": "delete-comments.deleteComments",
+        "title": "Delete Comments",
+        "category": "Delete Comments"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "delete-comments.deleteComments",
+        "key": "ctrl+shift+/",
+        "mac": "cmd+shift+/",
+        "when": "editorTextFocus"
       }
     ]
   },
