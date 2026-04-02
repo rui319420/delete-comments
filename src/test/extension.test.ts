@@ -65,6 +65,7 @@ suite('removeComments – 42 header', () => {
     const input  = HEADER_42 + '\n\nint\tmain(void)\n{\n\treturn (0); /* done */\n}\n';
     const result = removeComments(input, C_CONFIG);
     assert.ok(result.includes(':::      ::::::::'), '42 header should be kept');
+    assert.ok(result.startsWith(HEADER_42), 'entire 42 header block should be kept');
     assert.ok(!result.includes('done'), 'inline comment should be removed');
   });
 

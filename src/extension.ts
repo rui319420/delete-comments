@@ -74,6 +74,53 @@ export interface RemoveOptions {
   preserve42Header?: boolean;
 }
 
+/**
+ * 42 headers are often composed of many single-line block comments.
+ * Detect and preserve that top-of-file sequence as a whole.
+ */
+function extract42HeaderPrefix(
+  text: string,
+  blockComments: Array<[string, string]>,
+): string {
+  if (!blockComments.some(([start, end]) => start === '/*' && end === '*/')) {
+    return '';
+  }
+
+  let i = 0;
+  let sawCommentLine = false;
+  let saw42Signature = false;
+
+  while (i < text.length) {
+    const newlineIdx = text.indexOf('\n', i);
+    const lineEnd = newlineIdx === -1 ? text.length : newlineIdx;
+    const line = text.slice(i, lineEnd);
+    const trimmed = line.trim();
+
+    if (!sawCommentLine && trimmed === '') {
+      i = newlineIdx === -1 ? text.length : newlineIdx + 1;
+      continue;
+    }
+
+    const isSingleLineBlock = trimmed.startsWith('/*') && trimmed.endsWith('*/');
+    if (!isSingleLineBlock) {
+      break;
+    }
+
+    sawCommentLine = true;
+    if (line.includes(':::      ::::::::')) {
+      saw42Signature = true;
+    }
+
+    i = newlineIdx === -1 ? text.length : newlineIdx + 1;
+  }
+
+  if (!sawCommentLine || !saw42Signature) {
+    return '';
+  }
+
+  return text.slice(0, i);
+}
+
 // -----------------------------------------------------------------------
 // State-machine comment remover
 // -----------------------------------------------------------------------
@@ -99,6 +146,11 @@ export function removeComments(
   const blockComments = config.blockComment ?? [];
   const stringDelims  = [...(config.stringDelimiters ?? [])].sort((a, b) => b.length - a.length);
 
+  const preservedHeader = preserve42Header
+    ? extract42HeaderPrefix(text, blockComments)
+    : '';
+  const sourceText = text.slice(preservedHeader.length);
+
   let result             = '';
   let i                  = 0;
   let inString           = false;
@@ -108,8 +160,8 @@ export function removeComments(
   let blockCommentEnd    = '';
   let blockCommentBuffer = '';   // accumulates the full block comment
 
-  while (i < text.length) {
-    const ch = text[i];
+  while (i < sourceText.length) {
+    const ch = sourceText[i];
 
     // ── Newline ────────────────────────────────────────────────────────
     if (ch === '\n') {
@@ -132,7 +184,7 @@ export function removeComments(
 
     // ── Inside a block comment ─────────────────────────────────────────
     if (inBlockComment) {
-      if (text.startsWith(blockCommentEnd, i)) {
+      if (sourceText.startsWith(blockCommentEnd, i)) {
         blockCommentBuffer += blockCommentEnd;
         i                  += blockCommentEnd.length;
         inBlockComment      = false;
@@ -158,11 +210,11 @@ export function removeComments(
     // ── Inside a string literal ────────────────────────────────────────
     if (inString) {
       if (ch === '\\') {
-        result += ch + (text[i + 1] ?? '');
+        result += ch + (sourceText[i + 1] ?? '');
         i += 2;
         continue;
       }
-      if (text.startsWith(stringChar, i)) {
+      if (sourceText.startsWith(stringChar, i)) {
         result += stringChar;
         i      += stringChar.length;
         inString = false;
@@ -178,7 +230,7 @@ export function removeComments(
     // String start (longest delimiter wins)
     let matched = false;
     for (const delim of stringDelims) {
-      if (text.startsWith(delim, i)) {
+      if (sourceText.startsWith(delim, i)) {
         inString   = true;
         stringChar = delim;
         result    += delim;
@@ -191,7 +243,7 @@ export function removeComments(
 
     // Block comment start — begin buffering (include opening delimiter)
     for (const [start, end] of blockComments) {
-      if (text.startsWith(start, i)) {
+      if (sourceText.startsWith(start, i)) {
         inBlockComment     = true;
         blockCommentEnd    = end;
         blockCommentBuffer = start;
@@ -204,7 +256,7 @@ export function removeComments(
 
     // Line comment start
     for (const lc of lineComments) {
-      if (text.startsWith(lc, i)) {
+      if (sourceText.startsWith(lc, i)) {
         inLineComment = true;
         i            += lc.length;
         matched       = true;
@@ -218,7 +270,7 @@ export function removeComments(
     i++;
   }
 
-  return result;
+  return preservedHeader + result;
 }
 
 // -----------------------------------------------------------------------
