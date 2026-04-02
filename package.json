@@ -3,7 +3,7 @@
   "displayName": "Delete Comments",
 	"publisher": "rui319420",
   "description": "Remove all comments from the active file while preserving string literals.",
-  "version": "0.1.0",
+  "version": "0.1.1",
 	"icon": "images/icon.png",
 	"repository": {
     "type": "git",
