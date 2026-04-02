@@ -16,3 +16,6 @@ Finish! 🚀
 ### Option (Settings)
 * `delete-comments.preserve42Header` (default: `true`)
   * 42 school の標準ファイルヘッダーを削除せずに保持します。
+
+## GitHub
+https://github.com/rui319420/delete-comments
