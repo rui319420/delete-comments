@@ -4,6 +4,10 @@
   "description": "Remove all comments from the active file while preserving string literals.",
   "version": "0.1.0",
 	"icon": "images/icon.png",
+	"repository": {
+    "type": "git",
+    "url": "https://github.com/rui319420/delete-comments.git"
+  },
   "engines": {
     "vscode": "^1.110.0"
   },
