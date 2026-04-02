@@ -2,6 +2,10 @@
 
 文字列リテラル内の文字は安全に保護しつつ、開いているファイルのコメントアウトをすべて削除します。
 
+## Demo
+
+![Delete Comments Demo](images/Demo_Animation.gif)
+
 ## Usage
 
 ショートカットキーを入力するだけです。

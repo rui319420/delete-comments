@@ -3,6 +3,7 @@
   "displayName": "Delete Comments",
   "description": "Remove all comments from the active file while preserving string literals.",
   "version": "0.1.0",
+	"icon": "images/icon.png",
   "engines": {
     "vscode": "^1.110.0"
   },
