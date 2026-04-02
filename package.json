@@ -13,6 +13,16 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Delete Comments",
+      "properties": {
+        "delete-comments.preserve42Header": {
+          "type": "boolean",
+          "default": true,
+          "description": "42 school の標準ファイルヘッダー (:::      :::::::: を含むブロックコメント) を削除しないようにする。"
+        }
+      }
+    },
     "commands": [
       {
         "command": "delete-comments.deleteComments",
