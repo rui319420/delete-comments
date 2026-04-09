@@ -111,9 +111,11 @@ export function removeComments(
   let inString           = false;
   let stringChar         = '';
   let inLineComment      = false;
+  let dropLineCommentNewline = false;
   let inBlockComment     = false;
   let blockCommentEnd    = '';
   let blockCommentBuffer = '';
+  let lineStartInSource  = 0;
 
   while (i < sourceText.length) {
     const ch = sourceText[i];
@@ -124,9 +126,17 @@ export function removeComments(
         i++;
         continue;
       }
-      inLineComment = false;
-      result += '\n';
+      if (inLineComment) {
+        inLineComment = false;
+        if (!dropLineCommentNewline) {
+          result += '\n';
+        }
+        dropLineCommentNewline = false;
+      } else {
+        result += '\n';
+      }
       i++;
+      lineStartInSource = i;
       continue;
     }
 
@@ -188,6 +198,25 @@ export function removeComments(
 
     for (const [start, end] of blockComments) {
       if (sourceText.startsWith(start, i)) {
+        const prefix = sourceText.slice(lineStartInSource, i);
+
+        if (prefix.trim() === '') {
+          const blockEndIdx = sourceText.indexOf(end, i + start.length);
+          const lineEndIdx = sourceText.indexOf('\n', i);
+          const logicalLineEnd = lineEndIdx === -1 ? sourceText.length : lineEndIdx;
+
+          if (blockEndIdx !== -1 && blockEndIdx + end.length <= logicalLineEnd) {
+            const suffix = sourceText.slice(blockEndIdx + end.length, logicalLineEnd);
+            if (suffix.trim() === '') {
+              result = result.slice(0, result.length - prefix.length);
+              i = lineEndIdx === -1 ? sourceText.length : lineEndIdx + 1;
+              lineStartInSource = i;
+              matched = true;
+              break;
+            }
+          }
+        }
+
         inBlockComment     = true;
         blockCommentEnd    = end;
         blockCommentBuffer = start;
@@ -200,6 +229,11 @@ export function removeComments(
 
     for (const lc of lineComments) {
       if (sourceText.startsWith(lc, i)) {
+        const prefix = sourceText.slice(lineStartInSource, i);
+        if (prefix.trim() === '') {
+          result = result.slice(0, result.length - prefix.length);
+          dropLineCommentNewline = true;
+        }
         inLineComment = true;
         i            += lc.length;
         matched       = true;

@@ -101,6 +101,39 @@ suite('removeComments – 42 header', () => {
 // removeComments – JS/TS
 // -----------------------------------------------------------------------
 suite('removeComments – JS/TS', () => {
+  test('deletes full-line comments but keeps explicit blank lines', () => {
+    const input = [
+      '// コメント',
+      '// aaaa',
+      'let a: number = 1; // a is number',
+      '',
+      '// aaa',
+      '',
+      'a = 2;',
+      '// aa',
+      'a = 3;',
+      '',
+    ].join('\n');
+
+    const result = cleanupText(removeComments(input, JS_CONFIG));
+
+    const expected = [
+      'let a: number = 1;',
+      '',
+      'a = 2;',
+      'a = 3;',
+      '',
+    ].join('\n');
+
+    assert.strictEqual(result, expected);
+  });
+
+  test('keeps user-authored empty lines that are not comments', () => {
+    const input = 'let a = 1;\n\n// comment\n\nlet b = 2;\n';
+    const result = cleanupText(removeComments(input, JS_CONFIG));
+    assert.strictEqual(result, 'let a = 1;\n\nlet b = 2;\n');
+  });
+
   test('removes single-line comments', () => {
     const input  = 'const x = 1; // set x\nconst y = 2;\n';
     const result = removeComments(input, JS_CONFIG);
