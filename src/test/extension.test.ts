@@ -86,14 +86,12 @@ suite('removeComments – 42 header', () => {
     );
   });
 
-  test('maintains line count even when header is removed', () => {
+  test('removes the 42 header lines when header removal is requested', () => {
     const input  = HEADER_42 + '\nint main(void) { return 0; }\n';
     const result = removeComments(input, C_CONFIG, { preserve42Header: false });
-    assert.strictEqual(
-      input.split('\n').length,
-      result.split('\n').length,
-      'line count should be preserved via replacement newlines',
-    );
+    assert.ok(!result.includes(':::      ::::::::'));
+    assert.ok(result.includes('int main(void) { return 0; }'));
+    assert.strictEqual(result.split('\n').length, 2);
   });
 });
 
